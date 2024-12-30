@@ -580,5 +580,5 @@ def polygon_to_bitmap(polygons, height, width):
     """
     rles = maskUtils.frPyObjects(polygons, height, width)
     rle = maskUtils.merge(rles)
-    bitmap_mask = maskUtils.decode(rle).astype(np.bool)
+    bitmap_mask = maskUtils.decode(rle).astype(np.bool_)
     return bitmap_mask

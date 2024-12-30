@@ -202,8 +202,51 @@ class Mask2OBB(object):
         for mask_k, obb_k in zip(self.mask_keys, self.obb_keys):
             if mask_k in results:
                 mask = results[mask_k]
-                obbs = mask2bbox(mask, self.obb_type)
-                results[obb_k] = obbs
+                # obbs = mask2bbox(mask, self.obb_type)
+                # results[obb_k] = obbs
+                if mask_k == 'gt_masks':
+                    obbs = mask2bbox(mask, self.obb_type)
+                    if 'rbbox_vertexes' in results['ann_info']:
+                        obbs_ann = []
+                        for rbbox_v in results['ann_info']['rbbox_vertexes']:
+                            rbbox_vertexes = np.array(rbbox_v).reshape(-1,2)
+                            if results['h_flip']:
+                                rbbox_vertexes[:,0] = results['img_shape'][1]- rbbox_vertexes[:,0]
+                            if results['v_flip']:
+                                rbbox_vertexes[:,1] = results['img_shape'][0]- rbbox_vertexes[:,1]
+                            p_c = np.mean(rbbox_vertexes, axis=0)
+                            edge1 = rbbox_vertexes[1]-rbbox_vertexes[0]
+                            edge2 = rbbox_vertexes[2]-rbbox_vertexes[1]
+                            w = np.linalg.norm(edge1)
+                            h = np.linalg.norm(edge2)
+                            angle = -np.arctan2(edge1[1], edge1[0])
+                            obbs_ann.append(np.array([p_c[0], p_c[1], w, h, angle]))
+                        if False :
+                            import os
+                            import math
+                            image_path = os.path.join('/dataset/cropping',results['img_info']['file_name'])
+                            image = cv2.imread(image_path)
+                            if results['h_flip']:
+                                image = cv2.flip(image, 1)
+                            if results['v_flip']:
+                                image = cv2.flip(image, 0)
+                            for obb, obb2, mk in zip(obbs, obbs_ann, mask):
+                                rbbox1 = np.int0(cv2.boxPoints(((obb[0], obb[1]), (obb[2], obb[3]), -math.degrees(obb[4]))))
+                                image = cv2.drawContours(image,[rbbox1],0,(0,0,255),2)
+                                rbbox2 = np.int0(cv2.boxPoints(((obb2[0], obb2[1]), (obb2[2], obb2[3]), -math.degrees(obb2[4]))))
+                                image = cv2.drawContours(image,[rbbox2],0,(0,255,255),2)
+                                image = cv2.drawContours(image,[np.concatenate(mk, axis=0).astype(np.int32).reshape(-1, 2)],0,(255,0,0),2)
+                            cv2.imwrite('debug_img.png', image)
+                    # results[obb_k] = obbs
+                    if len(obbs_ann) >= 0:
+                        obbs_ann = np.array(obbs_ann, dtype=np.float32)
+                    else :
+                        obbs_ann = np.zeros((0, 5), dtype=np.float32)
+                    obbs_ann = bt.regular_obb(obbs_ann)
+                    results[obb_k] = np.array(obbs_ann)
+                else :
+                    obbs = mask2bbox(mask, self.obb_type)
+                    results[obb_k] = obbs
                 return results
 
 
