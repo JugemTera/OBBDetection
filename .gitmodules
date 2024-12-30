@@ -1,4 +1,0 @@
-[submodule "BoxToolkit"]
-	path = BoxToolkit
-	url = https://github.com/JugemTera/BboxToolkit.git
-	branch = get_obb_from_json
