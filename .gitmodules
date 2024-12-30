@@ -1,3 +1,5 @@
 [submodule "BboxToolkit"]
 	path = BboxToolkit
-	url = https://github.com/jbwang1997/BboxToolkit.git
+	# url = https://github.com/jbwang1997/BboxToolkit.git
+	url = https://github.com/JugemTera/BboxToolkit.git
+	branch = get_obb_from_json
